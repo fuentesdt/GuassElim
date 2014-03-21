@@ -17,16 +17,17 @@ d_C  = gpuArray( h_C );
 d_x  = gpuArray( zeros(Nsize,1) );
 
 
-GaussSolveptx = parallel.gpu.CUDAKernel('ForwardElimKernel.ptx', 'ForwardElimKernel.cu');
+GaussSolveptx = parallel.gpu.CUDAKernel('GaussSolve.ptx', 'GaussSolve.cu');
 threadsPerBlock = 256;
 npixel = 256;
 GaussSolveptx.ThreadBlockSize=[threadsPerBlock  1];
 blocksPerGrid = (npixel  + threadsPerBlock - 1) / threadsPerBlock;
 GaussSolveptx.GridSize=[ceil(blocksPerGrid)  1];
 
-[d_x ] = feval(GaussSolveptx,d_C,d_x,Nsize);       %Nsize,d_A,d_b,d_x );
+[d_x ] = feval(GaussSolveptx,Nsize,d_C,d_x);
 
+h_C = gather(d_C);
+h_C
+%mysoln = gather(d_x);
 
-mysoln = gather(d_x);
-
-norm(mysoln-h_x)
+%norm(mysoln-h_x)

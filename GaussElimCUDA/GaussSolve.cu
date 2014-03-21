@@ -5,12 +5,20 @@
 __global__ 
 void GaussSolve(
          int const Nsize,
-         const double* d_Matrix,
-         const double* d_RHS,
-               double* d_Soln)
+         double* d_Aug,
+         double* d_Piv)
 {
-    /* Calculate the global linear index, assuming a 1-d grid. */
-    int const idx = blockDim.x * blockIdx.x + threadIdx.x;
-    if (idx < Nsize)
-      printf("idx=%d A[%d][%d]=%f b[%d]=%f\n",idx,idx,idx,d_Matrix[idx+Nsize*idx], idx,d_RHS[idx]);
+    // Assign matrix elements to blocks and threads
+    int i = blockDim.y*blockIdx.y + threadIdx.y;
+    int j = blockDim.x*blockIdx.x + threadIdx.x;
+
+    // Parallel forward elimination
+    for (int k = 0; k < Nsize-1; k++)
+    {
+        d_Piv[i] = d_Aug[i][k]/d_Aug[k][k];
+        __syncthreads();
+        if ((i>k) && (i<Nsize) && (j>=k) && (j<=Nsize))
+            d_Aug[i][j] -= d_Piv[i]*d_Aug[k][j];
+        __syncthreads();
+    }
 }
