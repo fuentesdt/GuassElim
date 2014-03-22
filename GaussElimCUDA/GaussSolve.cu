@@ -15,10 +15,10 @@ void GaussSolve(
     // Parallel forward elimination
     for (int k = 0; k < Nsize-1; k++)
     {
-        d_Piv[i] = d_Aug[i][k]/d_Aug[k][k];
+        d_Piv[i] = d_Aug[Nsize*i+k]/d_Aug[Nsize*k+k];
         __syncthreads();
         if ((i>k) && (i<Nsize) && (j>=k) && (j<=Nsize))
-            d_Aug[i][j] -= d_Piv[i]*d_Aug[k][j];
+            d_Aug[Nsize*i+j] -= d_Piv[i]*d_Aug[Nsize*k+j];
         __syncthreads();
     }
 }
