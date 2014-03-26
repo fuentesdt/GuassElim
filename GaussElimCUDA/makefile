@@ -21,6 +21,7 @@ MATLABROOT	:= /opt/apps/matlab/2013a/
 #
 
 MEX=$(MATLABROOT)/bin/mex
+MCC=$(MATLABROOT)/bin/mcc
 CUDADIR = /opt/apps/cuda/5.0/
 
 # The following are the definitions for each target individually.
@@ -28,6 +29,11 @@ CUDADIR = /opt/apps/cuda/5.0/
 GaussSolve.ptx:   GaussSolve.cu
 	$(CUDADIR)/bin/nvcc -g -G -ptx -gencode=arch=compute_20,code=sm_20   GaussSolve.cu
 
+driver:  driver.m 
+	$(MCC) -m $^ -o $@
+
+hello:  hello.m 
+	$(MCC) -m $^ -o $@
 
 PronyKernel.mexa64: PronyKernel.cu
 	$(MEX) -g -v -f glnxa64/mexopts.sh $^
