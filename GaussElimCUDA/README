@@ -1,6 +1,17 @@
 
 Example Usage
 
+### matlab compiler example 
+$ make hello
+/opt/apps/matlab/2013a//bin/mcc -m hello.m -o hello
+$ ./run_hello.sh /opt/apps/matlab/2013a/
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/opt/apps/matlab/2013a//runtime/glnxa64:/opt/apps/matlab/2013a//bin/glnxa64:/opt/apps/matlab/2013a//sys/os/glnxa64:/opt/apps/matlab/2013a//sys/java/jre/glnxa64/jre/lib/amd64/native_threads:/opt/apps/matlab/2013a//sys/java/jre/glnxa64/jre/lib/amd64/server:/opt/apps/matlab/2013a//sys/java/jre/glnxa64/jre/lib/amd64/client:/opt/apps/matlab/2013a//sys/java/jre/glnxa64/jre/lib/amd64
+Warning: No display specified.  You will not be able to display graphics on the screen.
+Hello, World
+
 ### build ptx file first
 
 $ make GaussSolve.ptx
