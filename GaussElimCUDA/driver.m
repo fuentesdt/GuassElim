@@ -1,11 +1,13 @@
+function[] = main()
+
 clear all
 close all
 format shortg
 
 
 % create example matrix solve
-Nsize = 10;
-h_A = rand(Nsize);
+Nsize = 15;
+h_A = rand(Nsize)+1*eye(Nsize);
 %h_A = [6,-1,-2;-6,13,-6;-2,-1,6];
 h_b = rand(Nsize,1);
 %h_b = [3;1;3];
@@ -43,3 +45,7 @@ mysoln
 %mysoln = gather(d_Pivot);
 
 norm(mysoln-h_x)
+
+main = 0;
+
+%exit;
