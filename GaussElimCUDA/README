@@ -1,10 +1,25 @@
-
 Example Usage
+
+### build ptx file first
+
+$ make GaussSolve.ptx
+/opt/apps/cuda/5.0//bin/nvcc -g -G -ptx -gencode=arch=compute_20,code=sm_20   GaussSolve.cu
 
 ### matlab compiler example 
 $ make hello
 /opt/apps/matlab/2013a//bin/mcc -m hello.m -o hello
 $ ./run_hello.sh /opt/apps/matlab/2013a/
+
+### analyze with Nvidia Visual Profiler example
+$ /opt/apps/cuda/5.5/bin/nvvp
+
+File -> New Session
+
+File: full path of the Matlab executable file
+      e.g. /opt/apps/matlab/2013a/bin/matlab
+Working directory: full path of the Matlab .m file
+Arguments: -nojvm -nosplash -r filename_without_m_extension
+            e.g. -nojvm -nosplash -r driver
 ------------------------------------------
 Setting up environment variables
 ---
