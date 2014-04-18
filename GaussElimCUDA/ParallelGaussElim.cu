@@ -3,13 +3,15 @@
  * Device code
  */
 
+/*
 __global__ 
 void GaussSolve(
          int const Nsize,
          double* d_Aug,
          double* d_Piv)
 {
-    // Assign matrix elements to blocks and threads
+    for (int i=0; i<16; i++) d_Aug[i]=i;
+     Assign matrix elements to blocks and threads
     int i = blockDim.x*blockIdx.x + threadIdx.x;
 
     // Parallel forward elimination
@@ -17,29 +19,36 @@ void GaussSolve(
     {
         d_Piv[i] = d_Aug[i%Nsize+k*Nsize]/d_Aug[k*(Nsize+1)];
         __syncthreads();
-        if (((i%Nsize)>k) && ((i/Nsize/*+1*/)>=k) && ((i/Nsize/*+1*/)<=Nsize))
+        if (((i%Nsize)>k) && ((i/Nsize)>=k) && ((i/Nsize)<=Nsize))
             d_Aug[i] -= d_Piv[i]*d_Aug[i-(i%Nsize)+k];
         __syncthreads();
     }
-}
 
-__global__ void ParallelGaussElim()
+}
+*/
+
+__global__ void ParallelGaussElim(
+	int const nDim_image,
+	int const nDim_matrix,
+	double* d_A,
+	double* d_b,
+	double* d_x)
 {
 	// Assign image pixels to blocks and threads
-	int i_image = blockDim.y*blockIdx.y + threadIdx.y;
-	int j_image = blockDim.x*blockIdx.x + threadIdx.x;
+	int i_image = blockDim.x*blockIdx.x + threadIdx.x;
+	int j_image = blockDim.y*blockIdx.y + threadIdx.y;
 
-	int offset = (j_image + i_image*nDim_image)*nDim_mat*nDim_mat;
+	int offset = (j_image + i_image*nDim_image)*nDim_matrix*nDim_matrix;
 
 	// Gauss elimination
-	for (int k=0; k<nDim-1; k++)
+	for (int k=0; k<nDim_matrix-1; k++)
 	{
-		for (int i=k+1;	i<nDim; i++)
+		for (int i=k+1;	i<nDim_matrix; i++)
 		{
-			pivot = d_A[offset+i+k*nDim_mat]/d_A[offset+k+k*nDim_mat];
-			for (int j=k; j<nDim; j++)
+			double pivot = d_A[offset+i+k*nDim_matrix]/d_A[offset+k+k*nDim_matrix];
+			for (int j=k; j<nDim_matrix; j++)
 			{
-				d_A[offset+i+j*nDim_mat] -= pivot*d_A[offset+k+j*nDim_mat];
+				d_A[offset+i+j*nDim_matrix] -= pivot*d_A[offset+k+j*nDim_matrix];
 			}
 			d_b[offset+i] -= pivot*d_b[offset+i];
 		}
@@ -58,12 +67,12 @@ __global__ void ParallelGaussElim()
 
 	// Backward substitution
 
-	for (int i=nDim-1; i>=0; i--)
+	for (int i=nDim_matrix-1; i>=0; i--)
 	{
-
-		for (int j=nDim-1; j>i+1; j--)
+		d_x[offset+i] = d_b[offset+i];
+		for (int j=nDim_matrix-1; j>i; j--)
 		{
-
+			d_x[offset+i] -= d_A[offset+i+j*nDim_matrix]*d_x[offset+j];
 		}
 
 	}
