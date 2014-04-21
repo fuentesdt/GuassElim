@@ -36,9 +36,10 @@ __global__ void ParallelGaussElim(
 {
 	// Assign image pixels to blocks and threads
 	int i_image = blockDim.x*blockIdx.x + threadIdx.x;
-	int j_image = blockDim.y*blockIdx.y + threadIdx.y;
+	//int i_image = blockDim.y*blockIdx.y + threadIdx.y;
 
-	int offset = (j_image + i_image*nDim_image)*nDim_matrix*nDim_matrix;
+	//int offset = (j_image + i_image*nDim_image)*nDim_matrix*nDim_matrix;
+	int offset = i_image*nDim_matrix*nDim_matrix;
 
 	// Gauss elimination
 	for (int k=0; k<nDim_matrix-1; k++)
@@ -50,7 +51,7 @@ __global__ void ParallelGaussElim(
 			{
 				d_A[offset+i+j*nDim_matrix] -= pivot*d_A[offset+k+j*nDim_matrix];
 			}
-			d_b[offset+i] -= pivot*d_b[offset+i];
+			d_b[offset+i] -= pivot*d_b[offset+k];
 		}
 	}
 
@@ -70,11 +71,12 @@ __global__ void ParallelGaussElim(
 	for (int i=nDim_matrix-1; i>=0; i--)
 	{
 		d_x[offset+i] = d_b[offset+i];
+
 		for (int j=nDim_matrix-1; j>i; j--)
 		{
 			d_x[offset+i] -= d_A[offset+i+j*nDim_matrix]*d_x[offset+j];
 		}
-
+        d_x[offset+i] = d_x[offset+i]/d_A[offset+i+i*nDim_matrix];
 	}
 /*	do i=ndim,1,-1
 		x(i)=b(i)
