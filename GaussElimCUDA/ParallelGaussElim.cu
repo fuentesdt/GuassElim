@@ -37,17 +37,6 @@ __global__ void ParallelGaussElim(
 		}
 	}
 
-/*	do k=1,ndim-1
-		do i=k+1,ndim
-			pivot=A(i,k)/A(k,k)
-			do j=k,ndim
-				A(i,j)=A(i,j)-pivot*A(k,j)
-			end do
-			b(i)=b(i)-pivot*b(k)
-		end do
-	end do
-*/
-
 	// Backward substitution
 	for (int i=nDim_matrix-1; i>=0; i--)
 	{
@@ -59,12 +48,4 @@ __global__ void ParallelGaussElim(
         	d_x[offset_1d+i] = d_x[offset_1d+i]/d_A[offset_2d+i+i*nDim_matrix];
 if (d_x[offset_1d+i] /= 1) printf ("blkdim,id,tdid = %i,%i,%i \n",blockDim.x,blockIdx.x,threadIdx.x);
 	}
-/*	do i=ndim,1,-1
-		x(i)=b(i)
-		do j=ndim,i+1,-1
-			x(i)=x(i)-A(i,j)*x(j)
-		end do
-		x(i)=x(i)/A(i,i)
-	end do
-*/
 }
