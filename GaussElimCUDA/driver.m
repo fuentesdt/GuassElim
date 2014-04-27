@@ -1,45 +1,44 @@
+%function driver
+
 clear all
 close all
 format shortg
 
+nDim_image = 22;
+nDim_matrix = 16;
 
-% create example matrix solve
-Nsize = 10;
-h_A = rand(Nsize);
-%h_A = [6,-1,-2;-6,13,-6;-2,-1,6];
-h_b = rand(Nsize,1);
-%h_b = [3;1;3];
-%h_C = [h_A,h_b];
-%h_C = [6,-1,-2,3;-6,13,-6,1;-2,-1,6,3]
-h_x = h_A\h_b
+h_A = randn(nDim_matrix,nDim_matrix,nDim_image,nDim_image);
+h_b = randn(nDim_matrix,nDim_image,nDim_image);
+h_x = zeros(nDim_matrix,nDim_image,nDim_image);
+
+%for i = 1:nDim_image
+%    for j = 1:nDim_image
+%        h_A(:,:,i,j) = [6,-1,-2;-6,13,-6;-2,-1,6];
+%        h_b(:,i,j) = [3;1;3];
+%    end
+%end
 
 % transfer data to device
-%d_A  = gpuArray( h_A );
-%d_b  = gpuArray( h_b );
-d_C  = gpuArray( [h_A,h_b] );
-d_Pivot  = gpuArray( zeros(Nsize,Nsize+1) );
+d_A  = gpuArray( h_A );
+d_b  = gpuArray( h_b );
+d_x  = gpuArray( h_x );
 
-GaussSolveptx = parallel.gpu.CUDAKernel('GaussSolve.ptx', 'GaussSolve.cu');
+ParallelGaussElimptx = parallel.gpu.CUDAKernel('ParallelGaussElim.ptx', 'ParallelGaussElim.cu');
 threadsPerBlock = 256;
 npixel = 256;
-GaussSolveptx.ThreadBlockSize=[threadsPerBlock  1];
-blocksPerGrid = (npixel  + threadsPerBlock - 1) / threadsPerBlock;
-GaussSolveptx.GridSize=[ceil(blocksPerGrid)  1];
+ParallelGaussElimptx.ThreadBlockSize=[threadsPerBlock  1];
+blocksPerGrid = (npixel + threadsPerBlock -1) / threadsPerBlock;
+%blocksPerGrid = (npixel  * threadsPerBlock - 1) / threadsPerBlock;
+ParallelGaussElimptx.GridSize=[ceil(blocksPerGrid)  1];
+%ParallelGaussElimptx.GridSize=[3  1];
 
-[dAout,dPout] = feval(GaussSolveptx,Nsize,d_C,d_Pivot);
-h_Pivot = gather(d_Pivot);
-h_C = gather(d_C);
-%dAout
+[dAout,dbout,dxout] = feval(ParallelGaussElimptx,nDim_image,nDim_matrix,d_A,d_b,d_x);
 
-% Backward substition
-mysoln = dAout(:,Nsize+1);
-for i=Nsize:-1:1
-    for j=Nsize:-1:i+1
-        mysoln(i) = mysoln(i) - dAout(i,j)*mysoln(j);
+for i=1:nDim_image
+    for j=1:nDim_image
+        xtest(:,i,j)=h_A(:,:,i,j)\h_b(:,i,j);
+        norm(xtest(:,i,j)-dxout(:,i,j))
     end
-    mysoln(i) = mysoln(i)/dAout(i,i);
 end
-mysoln
-%mysoln = gather(d_Pivot);
 
-norm(mysoln-h_x)
+%exit
